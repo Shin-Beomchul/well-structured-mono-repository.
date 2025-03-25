@@ -1,0 +1,1 @@
+# well-structured-mono-repository.
