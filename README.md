@@ -15,6 +15,42 @@
 - shared로 공유되는 대상들은 어떻게 장기적인 유지보수와 버전 변경에도 문제 없이 대응 할 수 있을것인가
 	- 🖍️핵심은 **strictVersion**, **의존성 제공자**, **federation모듈 제공자**🖍️
 
+```mermaid
+sequenceDiagram
+    participant Host as host-app
+    participant Remote1 as remote1
+    participant Remote2 as remote2
+
+    %% 앱 시작 및 의존성 등록
+    Note over Host: 앱 시작됨
+    Host->>Host: 실행됨 (react@18.2.0, strictVersion: true)
+    Host->>Host: React Provider 등록됨
+
+    %% remote들이 의존성 요청 (병렬)
+    par remote1 의존성 요청
+        Remote1->>Host: react 공유 요청 (^18.2.0)
+        Host-->>Remote1: ✅ 공유 허용
+        Remote1->>Remote1: host의 react 사용
+    and remote2 의존성 요청
+        Remote2->>Host: react 공유 요청 (^17.2.0)
+        Host-->>Remote2: ❌ 공유 거부
+        Remote2->>Remote2: 실행 오류
+    end
+
+    %% 모듈 공유 (host가 remote1,2로부터 컴포넌트 요청)
+    Note over Host: host는 remote의 모듈 사용
+
+    Host->>Remote1: ./Button 모듈 요청
+    Remote1-->>Host: Button 컴포넌트 제공
+    Host->>Host: Button 컴포넌트 렌더링
+
+    Host->>Remote2: ./UserPanel 모듈 요청
+    Remote2-->>Host: 요청 실패 (실행 오류 상태)
+    Host->>Host: UserPanel 렌더링 불가 (remote2 실패)
+```
+- ·
+	-  ·
+
 		- 의존성 제공자와 federation모듈 제공자는 서로 다른 개념
 		
 		- exposes와 remotes은 import/export 설정일 뿐( federation모듈 제공 설정)
